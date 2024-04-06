@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Justus' Pizzakalkulator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-image: url('pizza.HEIC'); /* Hintergrundbild hinzufügen */
+            background-size: cover;
+            background-position: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #calculator {
+            background-color: white;
+            padding: 30px;
+            margin: auto;
+            width: 50%;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        input, select, button {
+            margin-top: 15px;
+            padding: 12px;
+            width: 95%;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 18px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        h2 {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 18px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="calculator">
+        <h2>Justus' Pizzakalkulator</h2>
+        <div class="tooltip">
+            <select id="pizzaType" onchange="updateTooltip()">
+                <option value="neapolitan">Neapolitanische Pizza</option>
+                <option value="roman">Römische Pizza</option>
+                <option value="detroit">Detroit Pizza</option>
+            </select>
+            <span class="tooltiptext" id="recipeInfo">Wähle eine Pizzavariante für Rezeptdetails.</span>
+        </div>
+        <select id="yeastType">
+            <option value="fresh">Frische Hefe</option>
+            <option value="dry">Trockenhefe</option>
+            <option value="sourdough">Sauerteig</option>
+            <option value="hybrid">Sauerteig mit Hefe</option>
+        </select>
+        <input type="number" id="flour" placeholder="Mehl in Gramm" required>
+        <input type="number" id="ballWeight" placeholder="Gewicht eines Teigballs in Gramm (optional)">
+        <button onclick="calculateIngredients()">Zutaten berechnen</button>
+        <div id="result"></div>
+        <a href="rezepte.html">Detaillierte Rezepte anzeigen</a>
+    </div>
+
+    <script>
+        function calculateIngredients() {
+            var pizzaType = document.getElementById('pizzaType').value;
+            var yeastType = document.getElementById('yeastType').value;
+            var flour = document.getElementById('flour').value;
+            var ballWeightInput = document.getElementById('ballWeight').value;
+            
+            // Standardgewicht eines Teigballs
+            var defaultBallWeight = 125; // Standardgewicht in Gramm
+            var ballWeight = ballWeightInput ? ballWeightInput : defaultBallWeight;
+            
+            // Mischverhältnisse anhand des Pizzatyps
+            var ratios = getRatios(pizzaType, yeastType);
+            
+            var water = flour * ratios.water;
+            var yeast = flour * ratios.yeast;
+            var salt = flour * ratios.salt;
+            var numberOfBalls = flour / ballWeight;
+
+            document.getElementById('result').innerHTML = 
+                "Anzahl der Teigbälle: " + numberOfBalls.toFixed(0) + "<br>" +
+                "Wasser: " + water.toFixed(2) + "g<br>" +
+                "Hefe/Sauerteig: " + yeast.toFixed(2) + "g<br>" +
+                "Salz: " + salt.toFixed(2) + "g";
+        }
+
+        function getRatios(pizzaType, yeastType) {
+            var baseRatios = {
+                neapolitan: { water: 0.6, yeast: 0.0025, salt: 0.02 },
+                roman: { water: 0.7, yeast: 0.003, salt: 0.027 },
+                detroit: { water: 0.65, yeast: 0.004, salt: 0.025 }
+            };
+
+            var yeastAdjustments = {
+                fresh: 1,
+                dry: 0.5,
+                sourdough: 0.15, // Beispielwerte
+                hybrid: 0.2 // Beispielwerte
+            };
+
+            var ratios = baseRatios[pizzaType];
+            ratios.yeast *= yeastAdjustments[yeastType];
+
+            return ratios;
+        }
+
+        function updateTooltip() {
+            var pizzaType = document.getElementById('pizzaType').value;
+            var recipeInfo = document.getElementById('recipeInfo');
+            switch(pizzaType) {
+                case 'neapolitan':
+                    recipeInfo.innerHTML = 'Neapolitanische Pizza:<br>1000g Mehl, 600g Wasser, 25g Salz, 2.5g Hefe';
+                    break;
+                case 'roman':
+                    recipeInfo.innerHTML = 'Römische Pizza:<br>1000g Mehl, 700g Wasser, 27g Salz, 3g Hefe';
+                    break;
+                case 'detroit':
+                    recipeInfo.innerHTML = 'Detroit Pizza:<br>1000g Mehl, 650g Wasser, 25g Salz, 4g Hefe';
+                    break;
+                default:
+                    recipeInfo.innerHTML = 'Bitte wählen Sie eine Pizzaart';
+            }
+        }
+    </script>
+</body>
+</html>
